@@ -1,0 +1,50 @@
+{
+  "name": "vscode-project-switcher",
+  "displayName": "Project Switcher",
+  "description": "Select and switch between projects from a sidebar.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:projectSwitcher.projectView"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "projectSwitcher",
+          "title": "Progetti",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "projectSwitcher": [
+        {
+          "id": "projectSwitcher.projectView",
+          "name": "Selettore Progetti",
+          "type": "webview"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/assert": "^1.5.11",
+    "@types/mocha": "^10.0.10",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^4.0.0"
+  },
+  "dependencies": {
+    "watch": "^1.0.2"
+  }
+}
