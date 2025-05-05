@@ -1,71 +1,97 @@
-# project-selector README
+# Project Selector
 
-This is the README for your extension "project-selector". After writing up a brief description, we recommend including the following sections.
+Un'estensione VS Code per gestire e passare facilmente tra i tuoi progetti, con funzionalità avanzate di visualizzazione e organizzazione.
 
-## Features
+## Caratteristiche
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### Gestione Progetti
+- Aggiungi, modifica ed elimina progetti dalla barra laterale
+- Organizza i progetti con icone personalizzate
+- Personalizza i colori delle icone e degli sfondi
+- Aggiungi descrizioni ai tuoi progetti
+- Drag & drop per riordinare i progetti
 
-For example if there is an image subfolder under your extension project workspace:
+### Informazioni File
+- Visualizzazione del linguaggio del file corrente con icone e colori specifici
+- Mostra il percorso del file corrente (relativo o assoluto)
+- Tooltip informativi al passaggio del mouse
 
-\!\[feature X\]\(images/feature-x.png\)
+### Linguaggi Supportati
+L'estensione riconosce e mostra informazioni per i seguenti linguaggi:
+- TypeScript (azzurro)
+- JavaScript (giallo)
+- Python (blu)
+- Java (blu scuro)
+- C# (verde)
+- PHP (viola)
+- Ruby (rosso)
+- Go (azzurro)
+- Rust (arancione)
+- HTML (arancione)
+- CSS (blu)
+- JSON (nero)
+- Markdown (blu scuro)
+- XML (arancione)
+- SQL (blu)
+- Shell (verde)
+- Docker (azzurro)
+- YAML (rosso)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Requisiti
 
-## Requirements
+- Visual Studio Code 1.80.0 o superiore
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## Installazione
 
-## Extension Settings
+1. Apri VS Code
+2. Premi `Ctrl+Shift+X` per aprire il pannello delle estensioni
+3. Cerca "Project Selector"
+4. Clicca su "Installa"
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Utilizzo
 
-For example:
+### Gestione Progetti
+1. Clicca sull'icona "Progetti" nella barra laterale
+2. Usa il pulsante "Aggiungi Progetto" per aggiungere un nuovo progetto
+3. Clicca su un progetto per aprirlo
+4. Usa i pulsanti di azione per modificare o eliminare i progetti
+5. Trascina i progetti per riordinarli
 
-This extension contributes the following settings:
+### Personalizzazione
+- Clicca sull'icona di un progetto per cambiare l'icona
+- Tasto destro sull'icona per cambiare il colore di sfondo
+- Usa il pulsante con l'icona della tavolozza per cambiare il colore dell'icona
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+### Informazioni File
+- Il linguaggio del file corrente viene mostrato automaticamente nella barra di stato
+- Il percorso del file viene mostrato accanto al linguaggio
+- Passa il mouse sopra le informazioni per vedere i dettagli completi
 
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
+## Note di Rilascio
 
 ### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
+- Rilascio iniziale con gestione base dei progetti
+- Supporto per icone e colori personalizzati
+- Visualizzazione del linguaggio del file corrente
 
 ### 1.1.0
+- Aggiunta visualizzazione del percorso del file
+- Migliorata la personalizzazione dei colori
+- Aggiunto supporto per più linguaggi di programmazione
 
-Added features X, Y, and Z.
+## Problemi Noti
 
----
+- Nessun problema noto al momento
 
-## Following extension guidelines
+## Contribuire
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+Se vuoi contribuire al progetto:
+1. Fai un fork del repository
+2. Crea un branch per la tua feature
+3. Invia una pull request
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+## Licenza
 
-## Working with Markdown
+MIT
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+**Divertiti a organizzare i tuoi progetti!**
