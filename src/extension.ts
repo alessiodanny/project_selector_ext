@@ -7,8 +7,19 @@ interface Project {
   path: string;
   icon?: string;
   color?: string;
+  iconColor?: string;
   description?: string;
 }
+
+const MATERIAL_ICONS = [
+  'folder', 'code', 'web', 'android', 'phone_android', 'computer', 'laptop',
+  'storage', 'cloud', 'school', 'work', 'business', 'home', 'star', 'favorite',
+  'extension', 'build', 'science', 'psychology', 'psychology_alt', 'architecture',
+  'brush', 'palette', 'music_note', 'movie', 'sports_esports', 'sports_soccer',
+  'fitness_center', 'restaurant', 'local_cafe', 'local_bar', 'shopping_cart',
+  'shopping_bag', 'local_mall', 'local_grocery_store', 'local_pharmacy',
+  'local_hospital', 'local_library', 'local_park', 'local_airport', 'local_taxi'
+];
 
 export function activate(context: vscode.ExtensionContext) {
   try {
@@ -64,10 +75,7 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private getProjectIcon(project: Project): string {
-    if (project.icon) {
-      return project.icon;
-    }
-    return 'folder';
+    return project.icon || 'folder';
   }
 
   resolveWebviewView(webviewView: vscode.WebviewView): void {
@@ -93,6 +101,15 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
           break;
         case 'delete':
           await this.deleteProject(message.project);
+          break;
+        case 'reorder':
+          this.reorderProjects(message.projects);
+          break;
+        case 'updateIcon':
+          await this.updateProjectIcon(message.project, message.icon, message.iconColor);
+          break;
+        case 'updateColor':
+          await this.updateProjectColor(message.project, message.color, message.isIconColor);
           break;
         case 'getProjects':
           this._view?.webview.postMessage({ 
@@ -128,7 +145,8 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
           name: projectName,
           path: folderUri[0].fsPath,
           description: description || undefined,
-          color: this.getRandomColor(projectName)
+          color: this.getRandomColor(projectName),
+          icon: 'folder'
         };
 
         this._projects.push(project);
@@ -185,6 +203,42 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
         });
       }
     }
+  }
+
+  private async updateProjectIcon(projectName: string, icon: string, iconColor?: string) {
+    const project = this._projects.find(p => p.name === projectName);
+    if (project) {
+      project.icon = icon;
+      if (iconColor) {
+        project.iconColor = iconColor;
+      }
+      this.saveProjects();
+      this._view?.webview.postMessage({ 
+        command: 'setProjects', 
+        projects: this._projects 
+      });
+    }
+  }
+
+  private async updateProjectColor(projectName: string, color: string, isIconColor: boolean = false) {
+    const project = this._projects.find(p => p.name === projectName);
+    if (project) {
+      if (isIconColor) {
+        project.iconColor = color;
+      } else {
+        project.color = color;
+      }
+      this.saveProjects();
+      this._view?.webview.postMessage({ 
+        command: 'setProjects', 
+        projects: this._projects 
+      });
+    }
+  }
+
+  private reorderProjects(newOrder: Project[]) {
+    this._projects = newOrder;
+    this.saveProjects();
   }
 
   private async switchProject(projectName: string) {
@@ -245,10 +299,18 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
       text-decoration: none;
       color: var(--vscode-foreground);
       background: var(--vscode-list-inactiveSelectionBackground);
+      user-select: none;
     }
     .project-item:hover {
       background: var(--vscode-list-hoverBackground);
       transform: translateX(2px);
+    }
+    .project-item.dragging {
+      opacity: 0.5;
+      background: var(--vscode-list-activeSelectionBackground);
+    }
+    .project-item.drag-over {
+      border-top: 2px solid var(--vscode-button-background);
     }
     .project-icon {
       width: 36px;
@@ -261,6 +323,7 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
       color: white;
       font-size: 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
     }
     .project-content {
       flex: 1;
@@ -337,6 +400,157 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
     .material-icons {
       font-size: 18px;
     }
+    .icon-picker {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--vscode-editor-background);
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 8px;
+      padding: 20px;
+      z-index: 1000;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      display: none;
+    }
+    .icon-picker.visible {
+      display: block;
+    }
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .icon-option {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--vscode-foreground);
+    }
+    .icon-option:hover {
+      background: var(--vscode-list-hoverBackground);
+    }
+    .color-picker {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--vscode-editor-background);
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 8px;
+      padding: 20px;
+      z-index: 1000;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      display: none;
+      min-width: 300px;
+    }
+    .color-picker.visible {
+      display: block;
+    }
+    .color-picker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--vscode-panel-border);
+    }
+    .color-picker-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .color-picker-close {
+      background: none;
+      border: none;
+      color: var(--vscode-foreground);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+    }
+    .color-picker-close:hover {
+      background: var(--vscode-button-hoverBackground);
+    }
+    .color-picker-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .color-picker-tab {
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      background: var(--vscode-button-secondaryBackground);
+      color: var(--vscode-button-secondaryForeground);
+    }
+    .color-picker-tab.active {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+    }
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      padding: 10px;
+    }
+    .color-option {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.2s;
+    }
+    .color-option:hover {
+      transform: scale(1.1);
+      border-color: var(--vscode-foreground);
+    }
+    .color-picker-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid var(--vscode-panel-border);
+    }
+    .color-picker-button {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+    .color-picker-button.primary {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+    }
+    .color-picker-button.secondary {
+      background: var(--vscode-button-secondaryBackground);
+      color: var(--vscode-button-secondaryForeground);
+    }
+    .color-picker-button:hover {
+      opacity: 0.9;
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      z-index: 999;
+    }
+    .overlay.visible {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -352,10 +566,60 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
       Aggiungi Progetto
     </button>
   </div>
+
+  <div id="overlay" class="overlay"></div>
+  
+  <div id="iconPicker" class="icon-picker">
+    <div class="icon-grid">
+      ${MATERIAL_ICONS.map(icon => `
+        <div class="icon-option" data-icon="${icon}">
+          <span class="material-icons">${icon}</span>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+
+  <div id="colorPicker" class="color-picker">
+    <div class="color-picker-header">
+      <div class="color-picker-title">Seleziona Colore</div>
+      <button class="color-picker-close" onclick="hidePickers()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="color-picker-tabs">
+      <div class="color-picker-tab active" data-tab="background">Sfondo</div>
+      <div class="color-picker-tab" data-tab="icon">Icona</div>
+    </div>
+    <div class="color-grid">
+      ${[
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 
+        '#FFEEAD', '#D4A5A5', '#9B59B6', '#3498DB',
+        '#E67E22', '#2ECC71', '#1ABC9C', '#F1C40F',
+        '#FF0000', '#00FF00', '#0000FF', '#FFFF00',
+        '#FF00FF', '#00FFFF', '#000000', '#FFFFFF',
+        '#808080', '#800000', '#808000', '#008000',
+        '#800080', '#008080', '#000080', '#FFA500',
+        '#A52A2A', '#DEB887', '#5F9EA0', '#7FFF00'
+      ].map(color => `
+        <div class="color-option" style="background-color: ${color}" data-color="${color}"></div>
+      `).join('')}
+    </div>
+    <div class="color-picker-footer">
+      <button class="color-picker-button secondary" onclick="hidePickers()">Annulla</button>
+      <button class="color-picker-button primary" onclick="applyColor()">Applica</button>
+    </div>
+  </div>
+
   <script>
     const vscode = acquireVsCodeApi();
     const projectList = document.getElementById('projectList');
     const addButton = document.getElementById('addProjectButton');
+    const iconPicker = document.getElementById('iconPicker');
+    const colorPicker = document.getElementById('colorPicker');
+    const overlay = document.getElementById('overlay');
+    let currentProject = null;
+    let currentColor = null;
+    let isIconColor = false;
 
     function getInitials(name) {
       return name
@@ -376,6 +640,79 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
       return colors[index % colors.length];
     }
 
+    function showIconPicker(project) {
+      currentProject = project;
+      iconPicker.classList.add('visible');
+      overlay.classList.add('visible');
+    }
+
+    function showColorPicker(project, isIcon = false) {
+      currentProject = project;
+      isIconColor = isIcon;
+      colorPicker.classList.add('visible');
+      overlay.classList.add('visible');
+      
+      // Aggiorna il tab attivo
+      document.querySelectorAll('.color-picker-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.getAttribute('data-tab') === (isIcon ? 'icon' : 'background'));
+      });
+    }
+
+    function hidePickers() {
+      iconPicker.classList.remove('visible');
+      colorPicker.classList.remove('visible');
+      overlay.classList.remove('visible');
+      currentProject = null;
+      currentColor = null;
+      isIconColor = false;
+    }
+
+    overlay.addEventListener('click', hidePickers);
+
+    document.querySelectorAll('.icon-option').forEach(option => {
+      option.addEventListener('click', () => {
+        if (currentProject) {
+          const icon = option.getAttribute('data-icon');
+          vscode.postMessage({ 
+            command: 'updateIcon', 
+            project: currentProject, 
+            icon: icon 
+          });
+          hidePickers();
+        }
+      });
+    });
+
+    document.querySelectorAll('.color-picker-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.color-picker-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        isIconColor = tab.getAttribute('data-tab') === 'icon';
+      });
+    });
+
+    document.querySelectorAll('.color-option').forEach(option => {
+      option.addEventListener('click', () => {
+        currentColor = option.getAttribute('data-color');
+        document.querySelectorAll('.color-option').forEach(opt => 
+          opt.style.border = '2px solid transparent'
+        );
+        option.style.border = '2px solid var(--vscode-foreground)';
+      });
+    });
+
+    function applyColor() {
+      if (currentProject && currentColor) {
+        vscode.postMessage({ 
+          command: 'updateColor', 
+          project: currentProject, 
+          color: currentColor,
+          isIconColor: isIconColor
+        });
+        hidePickers();
+      }
+    }
+
     function updateProjectList(projects) {
       if (projects.length === 0) {
         projectList.innerHTML = '<div class="empty-state">Nessun progetto aggiunto</div>';
@@ -383,9 +720,11 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
       }
 
       projectList.innerHTML = projects.map(project => \`
-        <div class="project-item" data-project="\${project.name}">
-          <div class="project-icon" style="background-color: \${project.color || getRandomColor(project.name)}">
-            <span class="material-icons">folder</span>
+        <div class="project-item" data-project="\${project.name}" draggable="true">
+          <div class="project-icon" style="background-color: \${project.color || getRandomColor(project.name)}" 
+               onclick="showIconPicker('\${project.name}')" 
+               oncontextmenu="showColorPicker('\${project.name}', false); return false;">
+            <span class="material-icons" style="color: \${project.iconColor || '#FFFFFF'}">\${project.icon || 'folder'}</span>
           </div>
           <div class="project-content">
             <div class="project-name">\${project.name}</div>
@@ -394,6 +733,9 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
           <div class="project-actions">
             <button class="action-button edit-button" title="Modifica progetto">
               <span class="material-icons">edit</span>
+            </button>
+            <button class="action-button" title="Cambia colore icona" onclick="showColorPicker('\${project.name}', true)">
+              <span class="material-icons">palette</span>
             </button>
             <button class="action-button delete-button" title="Elimina progetto">
               <span class="material-icons">delete</span>
@@ -408,7 +750,7 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
         
         // Click sul progetto
         item.addEventListener('click', (e) => {
-          if (!e.target.closest('.action-button')) {
+          if (!e.target.closest('.action-button') && !e.target.closest('.project-icon')) {
             vscode.postMessage({ command: 'switch', project: projectName });
           }
         });
@@ -423,6 +765,40 @@ class ProjectSidebarProvider implements vscode.WebviewViewProvider {
         item.querySelector('.delete-button').addEventListener('click', (e) => {
           e.stopPropagation();
           vscode.postMessage({ command: 'delete', project: projectName });
+        });
+
+        // Drag and drop
+        item.addEventListener('dragstart', (e) => {
+          item.classList.add('dragging');
+          e.dataTransfer.setData('text/plain', projectName);
+        });
+
+        item.addEventListener('dragend', () => {
+          item.classList.remove('dragging');
+        });
+
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          const draggingItem = document.querySelector('.dragging');
+          if (draggingItem !== item) {
+            item.classList.add('drag-over');
+          }
+        });
+
+        item.addEventListener('dragleave', () => {
+          item.classList.remove('drag-over');
+        });
+
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          item.classList.remove('drag-over');
+          const draggedProject = e.dataTransfer.getData('text/plain');
+          const projects = Array.from(document.querySelectorAll('.project-item'))
+            .map(item => item.getAttribute('data-project'));
+          vscode.postMessage({ 
+            command: 'reorder', 
+            projects: projects 
+          });
         });
       });
     }
